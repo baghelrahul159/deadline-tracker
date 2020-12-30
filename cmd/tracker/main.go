@@ -6,7 +6,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 
+	config "github.com/baghelrahul159/deadline-tracker/internal/common/config"
 	"github.com/gorilla/mux"
 )
 
@@ -20,10 +22,8 @@ func main() {
 	flag.Parse()
 
 	testConfig(isConfigTest)
-
-	router := mux.NewRouter()
-	router.HandleFunc("/health", healthCheckHandler)
-	log.Fatal(http.ListenAndServe(":9000", router))
+	config.Load()
+	initRouter()
 }
 
 func testConfig(configtest bool) {
@@ -31,6 +31,14 @@ func testConfig(configtest bool) {
 		log.Println("Config Test Successfull, exiting")
 		os.Exit(0)
 	}
+}
+
+func initRouter() {
+	router := mux.NewRouter()
+	router.HandleFunc("/health", healthCheckHandler)
+
+	port := config.GetConfig().Server.Port
+	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(port), router))
 }
 
 func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
