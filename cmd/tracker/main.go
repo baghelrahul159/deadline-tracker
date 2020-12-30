@@ -3,15 +3,26 @@ package main
 import (
 	"flag"
 	"log"
+	"net/http"
 	"os"
+
+	"github.com/gorilla/mux"
 )
 
-func main() {
-	var isConfigTest = flag.Bool("test", false, "config test")
+var isConfigTest bool
 
+func init() {
+	flag.BoolVar(&isConfigTest, "test", false, "config test")
+}
+
+func main() {
 	flag.Parse()
 
-	testConfig(*isConfigTest)
+	testConfig(isConfigTest)
+
+	router := mux.NewRouter()
+	router.HandleFunc("/", testHandler)
+	log.Fatal(http.ListenAndServe(":9000", router))
 }
 
 func testConfig(configtest bool) {
@@ -19,4 +30,8 @@ func testConfig(configtest bool) {
 		log.Println("Config Test Successfull, exiting")
 		os.Exit(0)
 	}
+}
+
+func testHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Test!\n"))
 }
